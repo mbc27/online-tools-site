@@ -1,0 +1,22 @@
+{
+  "name": "online-tools-site",
+  "version": "1.0.0",
+  "description": "常用工具箱导航站：零依赖 Node.js + JSON 文件存储，自带管理后台与用户投稿审核",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "tools",
+    "navigation",
+    "nodejs",
+    "zero-dependency",
+    "json",
+    "no-database"
+  ],
+  "author": "mbc27",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
+}

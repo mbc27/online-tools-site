@@ -1,0 +1,16 @@
+# 运行时数据（含管理员密码哈希、访问统计、上传的二维码，禁止提交）
+data/
+
+# 依赖与日志
+node_modules/
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 个人内容（不参与开源）
+公众号推文.md
+推广素材/

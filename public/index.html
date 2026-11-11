@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常用工具箱</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <button id="hamburger" class="hamburger" aria-label="菜单">☰</button>
+  <h1 id="logo" class="logo" title="常用工具箱">常用工具箱</h1>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="search" type="text" placeholder="搜索工具名称 / 描述 / 分类…" autocomplete="off">
+  </div>
+  <button id="openSubmit" class="submit-top" title="推荐工具给站长">＋<span class="txt">提交工具</span></button>
+  <div id="userChip" class="user-chip" title="访客身份（仅保存在你本地浏览器）">👤 …</div>
+</header>
+
+<div class="layout">
+  <div id="backdrop" class="backdrop"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-head"><span>分类</span></div>
+    <nav id="catList" class="cat-list"></nav>
+  </aside>
+
+  <main class="main">
+    <section id="popularBox" class="popular" hidden>
+      <div class="popular-head">热门工具 <small>按点击量排序</small></div>
+      <div id="popularList" class="popular-list"></div>
+    </section>
+
+    <div class="grid-head">
+      <h2 id="curCat">全部工具</h2>
+      <span id="countInfo" class="count-info"></span>
+    </div>
+    <section id="grid" class="grid"></section>
+    <div id="empty" class="empty" hidden>没有找到匹配的工具<br><small>换个关键词试试</small></div>
+
+    <footer class="site-footer">
+      <div class="foot-item"><b id="footTotal">-</b><span>总访问量</span></div>
+      <div class="foot-item"><b id="footToday">-</b><span>今日访问</span></div>
+      <div class="foot-item"><b id="footTools">-</b><span>收录工具</span></div>
+      <div class="foot-item"><b id="footUnique">-</b><span>独立访客</span></div>
+    </footer>
+  </main>
+</div>
+
+<!-- 用户提交工具 -->
+<div id="submitMask" class="modal-mask" hidden>
+  <div class="modal submit-modal">
+    <div class="sm-head">
+      <h3>提交工具</h3>
+      <button id="s_close" class="mini-btn" title="关闭">✕</button>
+    </div>
+    <div class="sm-tabs">
+      <button class="sm-tab active" data-sm="form">在线提交</button>
+      <button class="sm-tab" data-sm="contact">扫码联系站长</button>
+    </div>
+
+    <div id="sm-form" class="sm-body">
+      <p class="tip">推荐你想要的工具，管理员审核通过后会自动展示到首页对应分类下</p>
+      <label class="field">网站名称 <em>*</em><input id="s_name" type="text" placeholder="如：某某工具箱"></label>
+      <label class="field">网站地址 <em>*</em><input id="s_url" type="text" placeholder="如：https://example.com"></label>
+      <label class="field">所属分类<input id="s_category" type="text" list="catOptions2" placeholder="可不填，管理员会归类"><datalist id="catOptions2"></datalist></label>
+      <label class="field">一句话简介<input id="s_desc" type="text" placeholder="选填，让大家更快了解它"></label>
+      <p id="s_err" class="err" hidden></p>
+      <div class="btn-row">
+        <button id="s_cancel" class="btn ghost">取消</button>
+        <button id="s_send" class="btn primary">提交审核</button>
+      </div>
+    </div>
+
+    <div id="sm-contact" class="sm-body" hidden>
+      <p class="tip">不方便填表单？把「工具名称 + 网址」发给站长，由站长代为添加：</p>
+      <div class="qr-grid">
+        <div class="qr-card" id="qrCardQQ">
+          <div class="qr-img"><img id="qrQQ" src="/api/qr?type=qq" alt=""></div>
+          <b>QQ 扫码</b><span>添加站长好友</span>
+        </div>
+        <div class="qr-card" id="qrCardWX">
+          <div class="qr-img"><img id="qrWX" src="/api/qr?type=wechat" alt=""></div>
+          <b>微信扫码</b><span>添加站长好友</span>
+        </div>
+      </div>
+      <p id="qrEmpty" class="tip" hidden>站长暂未上传二维码，请先使用「在线提交」推荐工具。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 补充链接 -->
+<div id="linkMask" class="modal-mask" hidden>
+  <div class="modal link-modal">
+    <div class="sm-head">
+      <h3>补充链接</h3>
+      <button id="l_close" class="mini-btn" title="关闭">✕</button>
+    </div>
+    <div class="sm-body">
+      <p class="tip">「<b id="l_name">-</b>」还没有网址。填写后提交给站长审核，通过后会直接显示在这张卡片上。</p>
+      <label class="field">网站地址 <em>*</em><input id="l_url" type="text" placeholder="如：https://example.com"></label>
+      <p id="l_err" class="err" hidden></p>
+      <div class="btn-row">
+        <button id="l_cancel" class="btn ghost">取消</button>
+        <button id="l_send" class="btn primary">提交审核</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分类重命名 -->
+<div id="catFormMask" class="modal-mask" hidden>
+  <div class="modal" style="width:min(360px,94vw)">
+    <div class="sm-head"><h3>重命名分类</h3><button id="cf_close" class="mini-btn" title="关闭">✕</button></div>
+    <div class="sm-body">
+      <label class="field">新分类名称 <em>*</em><input id="cf_name" type="text" maxlength="20"></label>
+      <p class="tip">重命名会同步更新该分类下的所有卡片。</p>
+      <p id="cf_err" class="err" hidden></p>
+      <div class="btn-row">
+        <button id="cf_cancel" class="btn ghost">取消</button>
+        <button id="cf_save" class="btn primary">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 删除分类二次确认 -->
+<div id="catDelMask" class="modal-mask" hidden>
+  <div class="modal" style="width:min(430px,94vw)">
+    <div class="sm-head"><h3>删除分类</h3><button id="cd_close" class="mini-btn" title="关闭">✕</button></div>
+    <div class="sm-body">
+      <p class="tip" id="cd_tip">-</p>
+      <div id="cd_opts">
+        <label class="cd-opt">
+          <input type="radio" name="cd_mode" value="migrate" checked>
+          <span>全部迁移到其他分类：</span>
+          <select id="cd_target"></select>
+        </label>
+        <label class="cd-opt danger">
+          <input type="radio" name="cd_mode" value="purge">
+          <span>连同卡片一起删除（<b>不可恢复</b>）</span>
+        </label>
+      </div>
+      <p id="cd_err" class="err" hidden></p>
+      <div class="btn-row">
+        <button id="cd_cancel" class="btn ghost">取消</button>
+        <button id="cd_confirm" class="btn danger">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 管理员登录弹窗（隐藏入口触发） -->
+<div id="adminLogin" class="modal-mask" hidden>
+  <div class="modal admin-login">
+    <h3>管理员登录</h3>
+    <input id="adminUser" type="text" placeholder="用户名" autocomplete="username">
+    <input id="adminPass" type="password" placeholder="密码" autocomplete="current-password">
+    <p id="loginErr" class="err" hidden></p>
+    <div class="btn-row">
+      <button id="loginCancel" class="btn ghost">取消</button>
+      <button id="loginBtn" class="btn primary">登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理面板 -->
+<div id="adminPanel" class="modal-mask" hidden>
+  <div class="modal admin-panel">
+    <div class="panel-head">
+      <div class="tabs">
+        <button class="tab active" data-tab="tools">工具管理</button>
+        <button class="tab" data-tab="subs">待审核 <span id="subsBadge" class="badge" hidden>0</span></button>
+        <button class="tab" data-tab="stats">访问统计</button>
+        <button class="tab" data-tab="contact">联系方式</button>
+        <button class="tab" data-tab="cats">分类管理</button>
+      </div>
+      <span class="flex-gap"></span>
+      <button id="adminLogout" class="mini-btn" title="退出登录">退出</button>
+      <button id="adminClose" class="mini-btn" title="关闭">✕</button>
+    </div>
+
+    <div id="tab-tools" class="tab-body">
+      <div class="toolbar">
+        <input id="adminSearch" type="text" placeholder="搜索工具…">
+        <button id="addToolBtn" class="btn primary">＋ 新增工具</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>标签</th><th>描述</th><th>链接</th><th>操作</th></tr></thead>
+          <tbody id="toolTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-subs" class="tab-body" hidden>
+      <p class="tip-inline">「新工具」通过后自动加入工具库对应分类；「补充链接」通过后会更新对应卡片的网址；「拒绝」删除该条记录。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>名称</th><th>类型</th><th>分类</th><th>描述</th><th>链接</th><th>提交时间</th><th>操作</th></tr></thead>
+          <tbody id="subsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-cats" class="tab-body" hidden>
+      <p class="tip-inline">分类来自卡片的「所属分类」字段；空分类会先建好备用。删除分类时若其下还有卡片，可选择全部迁移到其他分类，或连同卡片一起删除。</p>
+      <div class="toolbar">
+        <input id="newCatName" type="text" placeholder="输入新分类名称…" maxlength="20">
+        <button id="addCatBtn" class="btn primary">＋ 新增分类</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>分类名</th><th>卡片数</th><th>操作</th></tr></thead>
+          <tbody id="catTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-contact" class="tab-body" hidden>
+      <p class="tip-inline">上传 QQ / 微信二维码后，用户在「提交工具 → 扫码联系站长」中就能扫码添加你。建议使用正方形图片（PNG / JPG，小于 3MB）。</p>
+      <div class="qr-admin">
+        <div class="qr-up">
+          <div class="qr-preview"><span class="ph">未上传</span><img id="qrQQAdmin" src="/api/qr?type=qq" alt="QQ 二维码"></div>
+          <b>QQ 二维码</b>
+          <input type="file" id="fileQQ" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="btn-row center">
+            <button class="mini-btn" id="pickQQ">选择图片</button>
+            <button class="mini-btn danger" id="delQQ">清除</button>
+          </div>
+          <div class="qr-adjust">
+            <label>适应方式
+              <select id="fitQQ">
+                <option value="contain">完整显示（默认）</option>
+                <option value="cover">填满并裁剪</option>
+                <option value="fill">拉伸填满</option>
+              </select>
+            </label>
+            <label>缩放 <output id="zoomQQv">100%</output></label>
+            <input type="range" id="zoomQQ" min="50" max="200" value="100">
+            <label>水平位置</label>
+            <input type="range" id="posxQQ" min="-100" max="100" value="0">
+            <label>垂直位置</label>
+            <input type="range" id="posyQQ" min="-100" max="100" value="0">
+            <div class="btn-row center">
+              <button class="mini-btn" id="saveAdjQQ">保存显示设置</button>
+              <button class="mini-btn" id="resetAdjQQ">恢复默认</button>
+            </div>
+          </div>
+        </div>
+        <div class="qr-up">
+          <div class="qr-preview"><span class="ph">未上传</span><img id="qrWXAdmin" src="/api/qr?type=wechat" alt="微信二维码"></div>
+          <b>微信二维码</b>
+          <input type="file" id="fileWX" accept="image/png,image/jpeg,image/webp" hidden>
+          <div class="btn-row center">
+            <button class="mini-btn" id="pickWX">选择图片</button>
+            <button class="mini-btn danger" id="delWX">清除</button>
+          </div>
+          <div class="qr-adjust">
+            <label>适应方式
+              <select id="fitWX">
+                <option value="contain">完整显示（默认）</option>
+                <option value="cover">填满并裁剪</option>
+                <option value="fill">拉伸填满</option>
+              </select>
+            </label>
+            <label>缩放 <output id="zoomWXv">100%</output></label>
+            <input type="range" id="zoomWX" min="50" max="200" value="100">
+            <label>水平位置</label>
+            <input type="range" id="posxWX" min="-100" max="100" value="0">
+            <label>垂直位置</label>
+            <input type="range" id="posyWX" min="-100" max="100" value="0">
+            <div class="btn-row center">
+              <button class="mini-btn" id="saveAdjWX">保存显示设置</button>
+              <button class="mini-btn" id="resetAdjWX">恢复默认</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-stats" class="tab-body" hidden>
+      <div class="stat-cards" id="statCards"></div>
+      <h4>近 14 天访问趋势</h4>
+      <div id="chart" class="chart"></div>
+      <h4>最近访问记录</h4>
+      <div class="table-wrap visit-list">
+        <table>
+          <thead><tr><th>时间</th><th>IP</th><th>设备 / 浏览器</th></tr></thead>
+          <tbody id="visitTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="toolForm" class="tool-form" hidden>
+      <h4 id="formTitle">新增工具</h4>
+      <label>名称 <input id="f_name" type="text"></label>
+      <label>分类 <input id="f_category" type="text" list="catOptions" placeholder="输入或选择分类"><datalist id="catOptions"></datalist></label>
+      <label>标签
+        <select id="f_tag">
+          <option value="">无标签</option>
+          <option value="✅开源免费">✅开源免费</option>
+          <option value="🆓免费版">🆓免费版</option>
+          <option value="🆓免费">🆓免费</option>
+          <option value="🆓免费在线">🆓免费在线</option>
+          <option value="🆓免费试用">🆓免费试用</option>
+          <option value="🆓个人免费">🆓个人免费</option>
+        </select>
+      </label>
+      <label>描述 <textarea id="f_desc" rows="2"></textarea></label>
+      <label>链接 <input id="f_url" type="text" placeholder="https://…"></label>
+      <p id="formErr" class="err" hidden></p>
+      <div class="btn-row">
+        <button id="formCancel" class="btn ghost">取消</button>
+        <button id="formSave" class="btn primary">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="cardTip" class="card-tip" hidden></div>
+<script src="app.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
