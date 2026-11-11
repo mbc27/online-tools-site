@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Syntax check
+        run: |
+          node --check server.js
+          node --check public/app.js
+          node --check public/admin.js
+
+      - name: JSON data check
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('清单.json','utf8')); console.log('清单.json OK')"
+          node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+
+      - name: Smoke test
+        run: |
+          node server.js &
+          SERVER_PID=$!
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/api/overview > /dev/null 2>&1; then break; fi
+            sleep 0.5
+          done
+          curl -fsS http://localhost:3000/api/overview > /dev/null
+          curl -fsS http://localhost:3000/api/categories > /dev/null
+          curl -fsS http://localhost:3000/api/qr-config > /dev/null
+          curl -fsS -o /dev/null -w "%{http_code}" http://localhost:3000/ | grep -q 200
+          echo "Smoke test passed"
+          kill $SERVER_PID

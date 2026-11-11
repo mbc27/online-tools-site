@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 在线体验 / Online demo
+    url: http://37.114.41.97:6020/
+    about: 先在演示站点试用，确认是项目本身的问题再提 Issue / Try the demo site first
